@@ -15,6 +15,7 @@ def main_loop():
 
 circle = Circle(27)
 
-circle.draw()
+# circle.draw()
+circle.test_rotate()
 # circle.get_height_offsets()
 # main_loop()
