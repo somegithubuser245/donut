@@ -8,12 +8,6 @@ class Circle:
         self.radius = dimension // 2
         self.center = dimension // 2
 
-    def round_for_graphics(self, number: float):
-        if number % 1 >= 0.5:
-            return math.ceil(number)
-
-        return round(number)
-
     def get_height_offsets(self) -> list[int]:
         height_offsets = []
 
@@ -24,7 +18,7 @@ class Circle:
 
         return height_offsets
 
-    def draw_circle(self):
+    def render_circle(self):
         circle_parts_multiplicators = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
         offsets_y = self.get_height_offsets()
         border_char = "+."
@@ -41,9 +35,9 @@ class Circle:
                 border_y = border_y - 1 if mul_y > 0 else border_y
 
                 self.plane[border_x][border_y] = border_char
-                self.draw()
 
     def draw(self):
+        self.render_circle()
         # self.draw_circle()
         for row_enum in enumerate(self.plane):
             index, row = row_enum

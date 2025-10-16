@@ -13,8 +13,8 @@ def main_loop():
         update_cmd_frame()
 
 
-circle = Circle(21)
+circle = Circle(27)
 
-circle.draw_circle()
+circle.draw()
 # circle.get_height_offsets()
 # main_loop()
