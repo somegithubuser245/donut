@@ -14,12 +14,13 @@ def main_loop():
         update_cmd_frame()
 
 
-circle = Circle(27)
+circle = Circle(41)
 
 # circle.draw()
 for i in range(1000):
-    circle.test_rotate(30)
-    sleep(0.1)
+    circle.test_rotate(5)
+    sleep(0.01)
     update_cmd_frame()
+    sleep(0.01)
 # circle.get_height_offsets()
 # main_loop()

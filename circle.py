@@ -2,7 +2,7 @@ import math
 
 
 class Vector:
-    def __init__(self, x: int, y: int, z: int):
+    def __init__(self, x: float, y: float, z: float):
         self.x = x
         self.y = y
         self.z = z
@@ -12,9 +12,6 @@ class Vector:
 
         x_teta = self.x * math.cos(angle_radians) - self.z * math.sin(angle_radians)
         z_teta = self.z * math.cos(angle_radians) + self.x * math.sin(angle_radians)
-
-        x_teta = round(x_teta)
-        z_teta = round(z_teta)
 
         return Vector(x_teta, self.y, z_teta)
 
@@ -44,7 +41,6 @@ class Circle:
 
         for offset in range(0, self.radius + 1):
             cell_height_from_offset = math.sqrt(abs(self.radius**2 - offset**2))
-            cell_height_from_offset = round(cell_height_from_offset)
             height_offsets.append(cell_height_from_offset)
 
         return height_offsets
@@ -62,25 +58,13 @@ class Circle:
                 x = offset_x * mul_x
                 y = offset_y * mul_y
 
-                self.append_circle_coordinates(x, y, self.radius)
+                self.append_circle_coordinates(x, y, 0)
 
     def rotate(self, degrees):
-        max_x, min_x = 0, 0
         result = []
         for vector in self.vector_coordinates:
             rotated = vector.rotate_across_y(degrees)
             result.append(rotated)
-            if rotated.x > max_x:
-                max_x = rotated.x
-
-            if rotated.x < min_x:
-                min_x = rotated.x
-            # print(f"v: {vector}")
-            # print(f"v': {rotated}")
-
-        print(min_x)
-        self.center_x = abs(min_x)
-        print(self.center_x)
 
         self.vector_coordinates.clear()
         self.vector_coordinates = result.copy()
@@ -94,10 +78,8 @@ class Circle:
             array_end_x = -1 if vector.x > 0 else 0
             array_end_y = -1 if vector.y > 0 else 0
 
-            x = self.center_x + vector.x + array_end_x
-            y = self.center_y + vector.y + array_end_y
-            # print(f"pre x: {vector.x} pre y: {vector.y}")
-            # print(f"x: {x}, y: {y}")
+            x = self.radius + round(vector.x) + array_end_x
+            y = self.radius + round(vector.y) + array_end_y
 
             self.output2D[y][x] = "+"
 
