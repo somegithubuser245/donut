@@ -14,7 +14,7 @@ def main_loop():
         update_cmd_frame()
 
 
-circle = Circle(41)
+circle = Circle(61)
 
 # circle.draw()
 for i in range(1000):
