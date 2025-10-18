@@ -59,12 +59,13 @@ class Vector:
 
 
 class Circle:
-    def __init__(self, dimension: int, depth: int):
+    def __init__(self, dimension: int, depth: int, granularity: int):
         self.depth = depth
         self.dimension = dimension
         self.radius = dimension // 2
         self.vector_coordinates: list[Vector] = []
         self.output2D = []
+        self.granularity = granularity
 
         self.reset_all_computed()
         self.init_coordinates_inner_circle()
@@ -72,16 +73,20 @@ class Circle:
     def reset_all_computed(self):
         self.output2D.clear()
         self.output2D = [
-            ["." for i in range(self.dimension)] for _ in range(self.dimension)
+            [" " for i in range(self.dimension)] for _ in range(self.dimension)
         ]
 
-    def get_height_offsets(self, edge_end, border_offset: int) -> list[float]:
+    def get_circle_coordinates(self, edge_end, border_offset: int) -> list[float]:
         height_offsets = []
         offset_from_center = edge_end - border_offset
 
         for offset in range(0, offset_from_center + 1):
-            cell_height_from_offset = math.sqrt(abs(offset_from_center**2 - offset**2))
-            height_offsets.append(cell_height_from_offset)
+            for granular_divider in range(self.granularity):
+                granular_offset = offset + (granular_divider / self.granularity)
+                cell_height_from_offset = math.sqrt(
+                    abs(offset_from_center**2 - granular_offset**2)
+                )
+                height_offsets.append((offset, cell_height_from_offset))
 
         return height_offsets
 
@@ -96,11 +101,11 @@ class Circle:
         return math.degrees(angle)
 
     def init_coordinates_inner_circle(self):
-        inner_circle_offsets = self.get_height_offsets(self.radius, self.depth // 2)
+        inner_circle_offsets = self.get_circle_coordinates(self.radius, self.depth // 2)
 
         for muls in FUNCTION_QUARTILES_MULTIPLIKATOR:
             mul_x, mul_y = muls
-            for offset_x, offset_y in enumerate(inner_circle_offsets):
+            for offset_x, offset_y in inner_circle_offsets:
                 # coordinates are 0, 0, 0 at the center of the space
                 x = offset_x * mul_x
                 y = offset_y * mul_y
@@ -111,18 +116,20 @@ class Circle:
     def init_depth_coordinates(
         self, x_inner: float, y_inner: float, rotate_angle: float
     ):
-        local_offsets = self.get_height_offsets(self.depth // 2, 0)
+        local_offsets = self.get_circle_coordinates(self.depth // 2, 0)
         grades_list = list(Grade.__members__.values())
         for muls in FUNCTION_QUARTILES_MULTIPLIKATOR:
             mul_x, mul_y = muls
-            for increment, offset_y in enumerate(local_offsets):
-                z = increment * mul_x
+            for increment, offsets in enumerate(local_offsets):
+                offset_z, offset_y = offsets
+                x = x_inner
+                z = offset_z * mul_x
                 y = y_inner + offset_y * mul_y
 
-                grade_index = abs(increment - self.depth // 2)
-                pivoted = Vector(
-                    x_inner, y, z, grades_list[grade_index]
-                ).rotate_across_z(rotate_angle)
+                grade_index = (increment // self.granularity) - (self.depth // 2)
+                pivoted = Vector(x, y, z, grades_list[grade_index]).rotate_across_z(
+                    rotate_angle
+                )
                 self.append_circle_coordinates(pivoted)
 
     def rotate(self, degrees):
@@ -134,6 +141,7 @@ class Circle:
 
         self.vector_coordinates.clear()
         self.vector_coordinates = result.copy()
+        self.reset_all_computed()
 
     def append_circle_coordinates(self, vector: Vector) -> None:
         self.vector_coordinates.append(vector)
@@ -159,11 +167,10 @@ class Circle:
             self.output2D[y][x] = vector.grade.value
 
         for row in self.output2D:
-            print(".".join(row))
+            print(" ".join(row))
 
         print("\n")
 
     def rotate_random(self):
         self.rotate(2)
         self.draw()
-        self.reset_all_computed()

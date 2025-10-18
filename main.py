@@ -14,14 +14,20 @@ def main_loop():
         update_cmd_frame()
 
 
-circle = Circle(30, 9)
+circle = Circle(51, 9, 3)
 # circle.test_rotate(20)
 
 circle.draw()
-while True:
-    circle.rotate_random()
-    sleep(0.01)
-    update_cmd_frame()
-    sleep(0.01)
-# circle.get_height_offsets()
-# # main_loop()
+# circle.rotate(90)
+circle.draw()
+
+
+def rotate_loop():
+    while True:
+        circle.rotate_random()
+        sleep(0.01)
+        update_cmd_frame()
+        sleep(0.01)
+
+
+rotate_loop()
