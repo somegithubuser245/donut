@@ -139,12 +139,22 @@ class Circle:
         self.vector_coordinates.append(vector)
 
     def draw(self):
+        z_buffer = [
+            [None for _ in range(self.dimension)] for _ in range(self.dimension)
+        ]
         for vector in self.vector_coordinates:
             array_end_x = -1 if vector.x > 0 else 0
             array_end_y = -1 if vector.y > 0 else 0
 
             x = self.radius + round(vector.x) + array_end_x
             y = self.radius + round(vector.y) + array_end_y
+
+            current_z = vector.z
+
+            if (old_z := z_buffer[x][y]) and old_z < current_z:
+                continue
+
+            z_buffer[x][y] = current_z
 
             self.output2D[y][x] = vector.grade.value
 

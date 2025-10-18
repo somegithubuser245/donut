@@ -14,7 +14,7 @@ def main_loop():
         update_cmd_frame()
 
 
-circle = Circle(50, 9)
+circle = Circle(30, 9)
 # circle.test_rotate(20)
 
 circle.draw()
