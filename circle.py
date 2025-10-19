@@ -24,7 +24,7 @@ def get_grade_by_increment(increment: int, depth: int):
 
 
 class Vector:
-    def __init__(self, x: float, y: float, z: float, grade: Grade):
+    def __init__(self, x: float, y: float, z: float, grade: Grade | None = None):
         self.x = x
         self.y = y
         self.z = z

@@ -1,7 +1,7 @@
 import os
 import random
 import time
-from circle import Circle
+from circle import Circle, Vector
 
 
 class Drawer:
@@ -25,25 +25,31 @@ class Drawer:
             [" " for i in range(self.dimension)] for _ in range(self.dimension)
         ]
 
-    def rotate_random(self):
+    def create_random_angles(self, angle_range: list[int]) -> list[Vector]:
         r = random.Random()
-        angle_range = [10, 90]
+        random_angles = []
+        direction_rand = r.randint(1, 2)
+        direction_rand = (-1) ** direction_rand
+        for _ in range(len(self.circles)):
+            angle_x = r.randint(*angle_range) * direction_rand
+            angle_y = r.randint(*angle_range) * direction_rand
+            angle_z = r.randint(*angle_range) * direction_rand
 
-        angle_x = r.randint(*angle_range)
-        angle_y = r.randint(*angle_range)
-        angle_z = r.randint(*angle_range)
+            angles_vector = Vector(angle_x, angle_y, angle_z)
+            random_angles.append(angles_vector)
 
-        for i in range(1, angle_range[1]):
-            x = angle_x / angle_range[0]
-            y = angle_y / angle_range[0]
-            z = angle_z / angle_range[0]
+        return random_angles
 
+    def rotate_random(self):
+        angle_range = [30, 90]
+        rand_vectors = self.create_random_angles(angle_range)
+        frame_angle_divider = angle_range[0] // 2
+
+        for _ in range(1, angle_range[1]):
             for index, circle in enumerate(self.circles):
-                mult = (-1) ** index
-
-                x *= mult
-                y *= mult
-                z *= mult
+                x = rand_vectors[index].x / frame_angle_divider
+                y = rand_vectors[index].y / frame_angle_divider
+                z = rand_vectors[index].z / frame_angle_divider
 
                 self.rotate_circle(circle, x, y, z)
                 self.draw(circle)
@@ -52,7 +58,6 @@ class Drawer:
             self.reset_all_computed()
             time.sleep(0.05)
             self.update_cmd_frame()
-            # time.sleep(0.03)
 
     def rotate_circle(self, circle: Circle, x, y, z):
         circle.rotate(x, y, z)
