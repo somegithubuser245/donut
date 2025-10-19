@@ -2,32 +2,18 @@ import os
 from time import sleep
 
 from circle import Circle
+from drawer import Drawer
 
+circle1 = Circle(51, 8, 2)
+circle2 = Circle(51, 6, 2)
+# circle3 = Circle(15, 3, 3)
 
-def update_cmd_frame():
-    os.system("cls" if os.name == "nt" else "clear")
-
-
-def main_loop():
-    while True:
-        print("------------")
-        update_cmd_frame()
-
-
-circle = Circle(51, 9, 3)
-# circle.test_rotate(20)
-
-circle.draw()
-# circle.rotate(90)
-circle.draw()
+drawer = Drawer([circle1, circle2])
 
 
 def rotate_loop():
     while True:
-        circle.rotate_random()
-        sleep(0.01)
-        update_cmd_frame()
-        sleep(0.01)
+        drawer.rotate_random()
 
 
 rotate_loop()
