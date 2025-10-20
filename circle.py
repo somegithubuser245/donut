@@ -9,18 +9,19 @@ FUNCTION_QUARTILES_MULTIPLIKATOR = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 
 class Grade(Enum):
     HIGH = "@"
-    MEDIUM = "="
-    LOW = "/"
-    TINY = "|"
+    MEDIUM = "$"
+    LOW = "#"
+    TINY = "/"
     BARELY = "-"
 
+def calculate_grade_index(offset_h: float, depth: int):
+    grade_list = list(Grade.__members__.values())
+    bin_length = len(grade_list)
 
-def get_grade_by_increment(increment: int, depth: int):
-    # grade_length = len(Grade.__members__.values())
-    # modulo = depth // grade_length if depth > grade_length else depth
+    bin = depth / bin_length / 2
+    grade = abs(offset_h - depth / 2) / bin
+    return math.ceil(grade) - 1
 
-    # increment % modulo
-    pass
 
 
 class Vector:
@@ -117,14 +118,12 @@ class Circle:
         for muls in FUNCTION_QUARTILES_MULTIPLIKATOR:
             mul_x, mul_y = muls
 
-            for increment, offsets in enumerate(local_offsets):
-                offset_z, offset_y = offsets
-
+            for offset_z, offset_y in local_offsets:
                 x = x_inner
                 z = offset_z * mul_x
                 y = y_inner + offset_y * mul_y
 
-                grade_index = (self.depth // 2) - (increment // self.granularity)
+                grade_index = calculate_grade_index(offset_z, self.depth)
 
                 vector = Vector(x, y, z, grades_list[grade_index])
                 vector.rotate_across_z(rotate_angle)
