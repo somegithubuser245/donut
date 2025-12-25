@@ -4,11 +4,9 @@ from time import sleep
 from circle import Circle
 from drawer import Drawer
 
-circle1 = Circle(51, 10, 2)
-circle2 = Circle(45, 7, 2)
-circle3 = Circle(21, 4, 1)
+circle1 = Circle(41, 10, 2)
 
-drawer = Drawer([circle1, circle2, circle3])
+drawer = Drawer([circle1])
 
 
 def rotate_loop():

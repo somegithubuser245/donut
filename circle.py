@@ -1,27 +1,20 @@
 from enum import Enum
 import math
-import os
-import random
-import time
 
 FUNCTION_QUARTILES_MULTIPLIKATOR = [(1, 1), (1, -1), (-1, -1), (-1, 1)]
 
 
 class Grade(Enum):
-    HIGH = "@"
-    MEDIUM = "$"
-    LOW = "#"
-    TINY = "/"
-    BARELY = "-"
-
-def calculate_grade_index(offset_h: float, depth: int):
-    grade_list = list(Grade.__members__.values())
-    bin_length = len(grade_list)
-
-    bin = depth / bin_length / 2
-    grade = abs(offset_h - depth / 2) / bin
-    return math.ceil(grade) - 1
-
+    HIGH_2 = "@"
+    HIGH_1 = "$"
+    HIGH_0 = "#"
+    MEDIUM_2 = "="
+    MEDIUM_1 = "!"
+    MEDIUM_0 = "*"
+    LOW_2 = "~"
+    LOW_1 = ";"
+    LOW_0 = "."
+    BLANK = ""
 
 
 class Vector:
@@ -29,22 +22,55 @@ class Vector:
         self.x = x
         self.y = y
         self.z = z
+        self.unit = None
         self.grade: Grade = grade
+    
+    def set_unit(self, unit: "Vector") -> None:
+        self.unit = unit
 
+    def compute_unit(self, from_vector: "Vector") -> "Vector":
+        diff = self.substract(from_vector)
+        denom = self._get_denom(diff)
+        
+        diff.x /= denom
+        diff.y /= denom
+        diff.z /= denom
+
+        return diff
+
+    def cross(self, another: "Vector") -> float:
+        return self.x * another.x + self.y * another.y + self.z * another.z
+
+    # this can probably be done much quicker and better!
     def rotate_across_y(self, angle) -> None:
         self.x, self.z = self.rotate_across_line(
             angle, horizontal=self.x, vertical=self.z
         )
+
+        if self.unit:
+            self.unit.x, self.unit.z = self.rotate_across_line(
+                angle, horizontal=self.unit.x, vertical=self.unit.z
+            )
 
     def rotate_across_x(self, angle) -> None:
         self.z, self.y = self.rotate_across_line(
             angle, horizontal=self.z, vertical=self.y
         )
 
+        if self.unit:
+            self.unit.z, self.unit.y = self.rotate_across_line(
+                angle, horizontal=self.unit.z, vertical=self.unit.y
+            )
+
     def rotate_across_z(self, angle) -> None:
         self.x, self.y = self.rotate_across_line(
             angle, horizontal=self.x, vertical=self.y
         )
+
+        if self.unit:
+            self.unit.x, self.unit.y = self.rotate_across_line(
+                angle, horizontal=self.unit.x, vertical=self.unit.y
+            )
 
     def rotate_across_line(self, angle, horizontal: float, vertical: float):
         angle_radians = math.radians(angle)
@@ -57,6 +83,16 @@ class Vector:
         )
 
         return h_teta, v_teta
+
+    def substract(self, another: "Vector") -> "Vector":
+        x = another.x - self.x
+        y = another.y - self.y
+        z = another.z - self.z
+
+        return Vector(x, y, z)
+    
+    def _get_denom(self, vector: "Vector") -> float:
+        return math.sqrt(vector.x ** 2 + vector.y ** 2 + vector.z ** 2)
 
     def __repr__(self) -> str:
         return f"x: {self.x}, y: {self.y}, z: {self.z}"
@@ -71,13 +107,14 @@ class Circle:
         self.vector_coordinates: list[Vector] = []
         self.granularity = precision_per_pixel
 
-        self.init_coordinates()
+        self.init_inner_circle()
 
     def get_circle_coordinates(self, edge_end, border_offset: int) -> list[float]:
         height_offsets = []
         offset_from_center = edge_end - border_offset
 
         for offset in range(0, offset_from_center + 1):
+            # some strange granularity creation (i.e. greater circle has more points)
             for granular_divider in range(self.granularity):
                 granular_offset = offset + (granular_divider / self.granularity)
                 cell_height_from_offset = math.sqrt(
@@ -87,17 +124,16 @@ class Circle:
 
         return height_offsets
 
-    def outer_circle_angle(self, x, y, quart_symbol):
+    def outer_circle_angle(self, x, y, quadrant_symbol):
         if y == 0:
             return math.pi / 2
 
         angle = math.atan(x / y)
-
-        angle = quart_symbol * ((math.pi / 2) - angle)
+        angle = quadrant_symbol * ((math.pi / 2) - angle)
 
         return math.degrees(angle)
 
-    def init_coordinates(self):
+    def init_inner_circle(self):
         inner_circle_offsets = self.get_circle_coordinates(self.radius, self.depth // 2)
 
         for muls in FUNCTION_QUARTILES_MULTIPLIKATOR:
@@ -106,26 +142,30 @@ class Circle:
                 # coordinates are 0, 0, 0 at the center of the space
                 x = offset_x * mul_x
                 y = offset_y * mul_y
-                qaurt_symbol = mul_x * mul_y
-                rotate_angle = self.outer_circle_angle(offset_x, offset_y, qaurt_symbol)
-                self.init_depth_coordinates(x, y, rotate_angle)
+                quadrant_product = mul_x * mul_y
+                rotate_angle = self.outer_circle_angle(offset_x, offset_y, quadrant_product)
 
-    def init_depth_coordinates(
-        self, x_inner: float, y_inner: float, rotate_angle: float
+                center_vector = Vector(x, y, 0)
+                self.init_donut_shape(center_vector, rotate_angle)
+
+    def init_donut_shape(
+        self, center_vector: Vector, rotate_angle: float
     ):
         local_offsets = self.get_circle_coordinates(self.depth // 2, 0)
         grades_list = list(Grade.__members__.values())
         for muls in FUNCTION_QUARTILES_MULTIPLIKATOR:
-            mul_x, mul_y = muls
+            mul_z, mul_y = muls
 
             for offset_z, offset_y in local_offsets:
-                x = x_inner
-                z = offset_z * mul_x
-                y = y_inner + offset_y * mul_y
+                x = center_vector.x
+                z = offset_z * mul_z
+                y = center_vector.y + offset_y * mul_y
 
-                grade_index = calculate_grade_index(offset_z, self.depth)
+                vector = Vector(x, y, z)
+                
+                unit = vector.compute_unit(center_vector)
+                vector.set_unit(unit)
 
-                vector = Vector(x, y, z, grades_list[grade_index])
                 vector.rotate_across_z(rotate_angle)
                 self.append_circle_coordinates(vector)
 
